@@ -91,10 +91,10 @@ function isShopOpen() {
 function spinWheel() {
     if (isSpinning) return;
 
-    if (!isShopOpen()) {
-        showModal("Désolé", "Le jeu est disponible uniquement entre 7h et 20h.");
-        return;
-    }
+    // if (!isShopOpen()) {
+    //     showModal("Désolé", "Le jeu est disponible uniquement entre 7h et 20h.");
+    //     return;
+    // }
 
     // Check if already played today - REMOVED FOR KIOSK MODE
     // const lastPlayed = localStorage.getItem('lastPlayed');
@@ -205,3 +205,7 @@ window.addEventListener('resize', () => {
     setupCanvas();
     drawWheel();
 });
+
+// Init
+setupCanvas();
+drawWheel();
