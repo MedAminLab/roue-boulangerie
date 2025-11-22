@@ -7,193 +7,212 @@ const modalTitle = document.getElementById('modalTitle');
 const modalMessage = document.getElementById('modalMessage');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
-// Configuration
+// Configuration - 4 SEGMENTS SEULEMENT !
 const PRIZES = [
-    { label: "Grille-pain", color: "#ff00cc", type: "win" }, // Neon Pink
-    { label: "Perdu", color: "#33ccff", type: "loss" },      // Neon Blue
-    { label: "Baguette", color: "#ffcc00", type: "loss" },   // Gold
-    { label: "Perdu", color: "#33ccff", type: "loss" },
-    { label: "Croissant", color: "#00ff99", type: "loss" },  // Neon Green
-    { label: "Perdu", color: "#33ccff", type: "loss" },
-    { label: "-5%", color: "#ffcc00", type: "loss" },
-    { label: "Perdu", color: "#33ccff", type: "loss" }
+    { label: "GAGNÉ !", color: "#00ff88", type: "win" },    // Vert néon
+    { label: "PERDU", color: "#ff0066", type: "loss" },     // Rose/Rouge néon
+    { label: "GAGNÉ !", color: "#ffd700", type: "win" },    // Or
+    { label: "PERDU", color: "#ff0066", type: "loss" }      // Rose/Rouge néon
 ];
 
-const WIN_PROBABILITY = 0.05; // 5% chance
-const START_HOUR = 7;
-const END_HOUR = 20;
-
+const WIN_PROBABILITY = 0.50; // 50% de chance de gagner
 let isSpinning = false;
+let currentRotation = 0;
 
-// Setup Canvas for HiDPI
+// Setup Canvas
 function setupCanvas() {
+    const size = 500; // Taille fixe
     const dpr = window.devicePixelRatio || 1;
-    // We need to use the size defined in CSS or HTML attributes
-    // In HTML we set width="600" height="600"
-    // Let's force these values to ensure consistency
-    const logicalWidth = 600;
-    const logicalHeight = 600;
 
-    canvas.width = logicalWidth * dpr;
-    canvas.height = logicalHeight * dpr;
-
-    canvas.style.width = `${logicalWidth}px`;
-    canvas.style.height = `${logicalHeight}px`;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = `${size}px`;
+    canvas.style.height = `${size}px`;
 
     ctx.scale(dpr, dpr);
-
-    // Add transition for smooth spinning
-    canvas.style.transition = "transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)";
 }
 
-// Draw Wheel
+// Draw Wheel - SIMPLE ET CLAIR
 function drawWheel() {
+    const size = 500;
+    const centerX = size / 2;
+    const centerY = size / 2;
+    const radius = size / 2 - 20;
     const numSegments = PRIZES.length;
     const arcSize = (2 * Math.PI) / numSegments;
-    // Use logical size for drawing calculations
-    const width = 600; // Fixed size
-    const height = 600; // Fixed size
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const radius = width / 2 - 20; // Slightly smaller than half width
 
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, size, size);
 
+    // Dessiner chaque segment
     PRIZES.forEach((prize, i) => {
         const angle = i * arcSize;
 
-        // Segment
+        // Segment coloré
         ctx.beginPath();
         ctx.fillStyle = prize.color;
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, radius, angle, angle + arcSize);
         ctx.lineTo(centerX, centerY);
         ctx.fill();
+
+        // Bordure blanche entre segments
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 4;
         ctx.stroke();
 
-        // Text
+        // Texte
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(angle + arcSize / 2);
-        ctx.textAlign = "right";
-        // White text for all segments for better contrast on neon colors
+        ctx.textAlign = "center";
         ctx.fillStyle = "#fff";
-        ctx.font = "bold 32px 'Fredoka One', sans-serif"; // Added fallback
-        ctx.shadowColor = "rgba(0,0,0,0.5)";
-        ctx.shadowBlur = 4;
-        // Adjust text position: radius - padding
-        ctx.fillText(prize.label, radius - 40, 10);
+        ctx.font = "bold 48px 'Fredoka One', sans-serif";
+        ctx.shadowColor = "rgba(0,0,0,0.8)";
+        ctx.shadowBlur = 8;
+        ctx.fillText(prize.label, radius * 0.65, 10);
         ctx.restore();
     });
-    console.log("Wheel drawn!");
+
+    console.log("✅ Roue dessinée avec 4 segments !");
 }
 
-// Check Time
-function isShopOpen() {
-    const now = new Date();
-    const hour = now.getHours();
-    return hour >= START_HOUR && hour < END_HOUR;
+// Animation de particules pendant la rotation
+function launchSpinParticles() {
+    const colors = ['#00ff88', '#ffd700', '#ff0066', '#33ccff'];
+
+    for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+            confetti({
+                particleCount: 20,
+                angle: 90,
+                spread: 360,
+                origin: { x: 0.5, y: 0.5 },
+                colors: colors,
+                gravity: 0.3,
+                scalar: 0.8,
+                drift: 0
+            });
+        }, i * 300);
+    }
+}
+
+// Animation de rotation avec ralentissement dramatique
+function animateWheelSpin(targetRotation, duration, onComplete) {
+    const startRotation = currentRotation;
+    const startTime = Date.now();
+
+    function animate() {
+        const currentTime = Date.now();
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Easing: démarrage rapide, ralentissement dramatique
+        const easeOut = 1 - Math.pow(1 - progress, 4);
+
+        currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            currentRotation = targetRotation;
+            onComplete();
+        }
+    }
+
+    animate();
 }
 
 // Game Logic
 function spinWheel() {
     if (isSpinning) return;
 
-    // if (!isShopOpen()) {
-    //     showModal("Désolé", "Le jeu est disponible uniquement entre 7h et 20h.");
-    //     return;
-    // }
-
-    // Check if already played today - REMOVED FOR KIOSK MODE
-    // const lastPlayed = localStorage.getItem('lastPlayed');
-    // const today = new Date().toDateString();
-    // if (lastPlayed === today) {
-    //     showModal("Déjà joué", "Vous avez déjà tenté votre chance aujourd'hui ! Revenez demain.");
-    //     return;
-    // }
-
     isSpinning = true;
     spinBtn.disabled = true;
-    statusMessage.textContent = "Bonne chance !";
+    statusMessage.textContent = "🎰 EN COURS...";
 
-    // Determine result beforehand
+    // Particules de départ
+    launchSpinParticles();
+
+    // Déterminer le résultat
     const isWin = Math.random() < WIN_PROBABILITY;
-    let targetIndex;
+    let targetSegment;
 
     if (isWin) {
-        targetIndex = PRIZES.findIndex(p => p.type === "win");
+        // Choisir un segment "win" (0 ou 2)
+        targetSegment = Math.random() < 0.5 ? 0 : 2;
     } else {
-        const lossIndices = PRIZES.map((p, i) => p.type === "loss" ? i : -1).filter(i => i !== -1);
-        targetIndex = lossIndices[Math.floor(Math.random() * lossIndices.length)];
+        // Choisir un segment "loss" (1 ou 3)
+        targetSegment = Math.random() < 0.5 ? 1 : 3;
     }
 
-    // Calculate rotation
-    const segmentAngle = 360 / PRIZES.length;
-    const spins = 5 + Math.floor(Math.random() * 5); // 5 to 10 spins
+    // Calculer la rotation
+    const segmentAngle = 360 / PRIZES.length; // 90°
+    const spins = 8 + Math.floor(Math.random() * 4); // 8 à 12 tours
     const baseRotation = 360 * spins;
 
-    // Target calculation:
-    // Pointer is at Top (-90deg).
-    // We want segment `targetIndex` to be at Top.
-    // Segment `targetIndex` starts at `targetIndex * segmentAngle`.
-    // Center of segment is `targetIndex * segmentAngle + segmentAngle/2`.
-    // To bring Center to -90, we rotate by: -90 - Center.
-    const segmentCenter = (targetIndex * segmentAngle) + (segmentAngle / 2);
-    const targetRotation = (270 - segmentCenter); // 270 is equivalent to -90 mod 360
+    // Centrer sur le segment gagnant
+    const segmentCenter = targetSegment * segmentAngle + segmentAngle / 2;
+    const targetRotation = currentRotation + baseRotation + (360 - segmentCenter) + 90;
 
-    // Add random offset within the segment (avoid edges)
-    const randomOffset = (Math.random() - 0.5) * (segmentAngle * 0.6);
-
-    const totalRotation = baseRotation + targetRotation + randomOffset;
-
-    // Animate
-    canvas.style.transform = `rotate(${totalRotation}deg)`;
-
-    // Wait for animation to finish (4s)
-    setTimeout(() => {
+    // Animation de 5 secondes
+    animateWheelSpin(targetRotation, 5000, () => {
         isSpinning = false;
         spinBtn.disabled = false;
-        statusMessage.textContent = isWin ? "Gagné !" : "Perdu...";
-
-        // localStorage.setItem('lastPlayed', today); // REMOVED FOR KIOSK MODE
 
         if (isWin) {
-            launchConfetti();
-            showModal("Félicitations !", "Vous avez gagné un grille-pain ! Présentez cet écran au comptoir.");
+            // 🎉 VICTOIRE !
+            statusMessage.textContent = "🎊 BRAVO !";
+            launchWinConfetti();
+            showModal("🎉 FÉLICITATIONS !", "Vous avez GAGNÉ un grille-pain ! Présentez cet écran au comptoir.");
         } else {
-            showModal("Dommage...", `Vous êtes tombé sur : ${PRIZES[targetIndex].label}. Réessayez demain !`);
+            // 😢 Perdu
+            statusMessage.textContent = "😢 Dommage...";
+            launchLossEffect();
+            showModal("😢 Dommage !", "Ce n'est pas gagné cette fois... Réessayez votre chance !");
         }
-
-        // Reset rotation (optional, but keeps numbers small if we played multiple times without reload)
-        // Actually, with CSS transform, resetting snaps it back. Better to keep adding rotation or reset silently.
-        // For simplicity, we leave it as is.
-    }, 4000);
+    });
 }
 
-function launchConfetti() {
-    const duration = 3000;
+// Confetti de victoire - EXPLOSION !
+function launchWinConfetti() {
+    const duration = 4000;
     const end = Date.now() + duration;
 
     (function frame() {
+        // Confetti doré et vert
         confetti({
-            particleCount: 5,
+            particleCount: 10,
             angle: 60,
-            spread: 55,
+            spread: 100,
             origin: { x: 0 },
-            colors: ['#ff00cc', '#33ccff', '#ffcc00', '#00ff99']
+            colors: ['#ffd700', '#00ff88', '#ffff00']
         });
         confetti({
-            particleCount: 5,
+            particleCount: 10,
             angle: 120,
-            spread: 55,
+            spread: 100,
             origin: { x: 1 },
-            colors: ['#ff00cc', '#33ccff', '#ffcc00', '#00ff99']
+            colors: ['#ffd700', '#00ff88', '#ffff00']
         });
 
         if (Date.now() < end) {
             requestAnimationFrame(frame);
         }
     }());
+}
+
+// Effet de perte - particules qui tombent
+function launchLossEffect() {
+    confetti({
+        particleCount: 50,
+        angle: 90,
+        spread: 45,
+        origin: { y: 0.3 },
+        colors: ['#666', '#999', '#444'],
+        gravity: 1.5,
+        scalar: 0.6
+    });
 }
 
 function showModal(title, message) {
@@ -204,16 +223,24 @@ function showModal(title, message) {
 
 closeModalBtn.addEventListener('click', () => {
     resultModal.classList.add('hidden');
+    statusMessage.textContent = "PRÊT À JOUER ?";
 });
 
 spinBtn.addEventListener('click', spinWheel);
 
-// Handle Resize
+// Redessiner si fenêtre redimensionnée
 window.addEventListener('resize', () => {
     setupCanvas();
     drawWheel();
 });
 
-// Init with robust loading
-window.addEventListener('load', () => {
-    console.log("Window loaded, initializing wheel...");
+// INITIALISATION
+console.log("🎮 Initialisation de la roue...");
+setupCanvas();
+drawWheel();
+
+// Attendre que les polices soient chargées
+document.fonts.ready.then(() => {
+    console.log("✅ Polices chargées, redessin...");
+    drawWheel();
+});
