@@ -8,15 +8,16 @@ const modalMessage = document.getElementById('modalMessage');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
 // Configuration
+// Configuration
 const PRIZES = [
-    { label: "Grille-pain", color: "#E63946", type: "win" }, // Rouge brique
-    { label: "Perdu", color: "#FAEDCD", type: "loss" },      // Crème
-    { label: "Baguette", color: "#D4A373", type: "loss" },   // Pain doré
-    { label: "Perdu", color: "#FAEDCD", type: "loss" },
-    { label: "Croissant", color: "#D4A373", type: "loss" },
-    { label: "Perdu", color: "#FAEDCD", type: "loss" },
-    { label: "-5%", color: "#D4A373", type: "loss" },
-    { label: "Perdu", color: "#FAEDCD", type: "loss" }
+    { label: "Grille-pain", color: "#ff00cc", type: "win" }, // Neon Pink
+    { label: "Perdu", color: "#33ccff", type: "loss" },      // Neon Blue
+    { label: "Baguette", color: "#ffcc00", type: "loss" },   // Gold
+    { label: "Perdu", color: "#33ccff", type: "loss" },
+    { label: "Croissant", color: "#00ff99", type: "loss" },  // Neon Green
+    { label: "Perdu", color: "#33ccff", type: "loss" },
+    { label: "-5%", color: "#ffcc00", type: "loss" },
+    { label: "Perdu", color: "#33ccff", type: "loss" }
 ];
 
 const WIN_PROBABILITY = 0.05; // 5% chance
@@ -69,9 +70,12 @@ function drawWheel() {
         ctx.translate(centerX, centerY);
         ctx.rotate(angle + arcSize / 2);
         ctx.textAlign = "right";
-        ctx.fillStyle = prize.color === "#FAEDCD" ? "#bc6c25" : "#FFF";
-        ctx.font = "bold 18px Outfit";
-        ctx.fillText(prize.label, radius - 30, 6);
+        // White text for all segments for better contrast on neon colors
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 24px 'Fredoka One'"; // Bigger, bolder font
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 4;
+        ctx.fillText(prize.label, radius - 30, 8);
         ctx.restore();
     });
 }
@@ -92,13 +96,13 @@ function spinWheel() {
         return;
     }
 
-    // Check if already played today
-    const lastPlayed = localStorage.getItem('lastPlayed');
-    const today = new Date().toDateString();
-    if (lastPlayed === today) {
-        showModal("Déjà joué", "Vous avez déjà tenté votre chance aujourd'hui ! Revenez demain.");
-        return;
-    }
+    // Check if already played today - REMOVED FOR KIOSK MODE
+    // const lastPlayed = localStorage.getItem('lastPlayed');
+    // const today = new Date().toDateString();
+    // if (lastPlayed === today) {
+    //     showModal("Déjà joué", "Vous avez déjà tenté votre chance aujourd'hui ! Revenez demain.");
+    //     return;
+    // }
 
     isSpinning = true;
     spinBtn.disabled = true;
@@ -143,7 +147,7 @@ function spinWheel() {
         spinBtn.disabled = false;
         statusMessage.textContent = isWin ? "Gagné !" : "Perdu...";
 
-        localStorage.setItem('lastPlayed', today);
+        // localStorage.setItem('lastPlayed', today); // REMOVED FOR KIOSK MODE
 
         if (isWin) {
             launchConfetti();
@@ -168,14 +172,14 @@ function launchConfetti() {
             angle: 60,
             spread: 55,
             origin: { x: 0 },
-            colors: ['#E63946', '#D4A373', '#FAEDCD']
+            colors: ['#ff00cc', '#33ccff', '#ffcc00', '#00ff99']
         });
         confetti({
             particleCount: 5,
             angle: 120,
             spread: 55,
             origin: { x: 1 },
-            colors: ['#E63946', '#D4A373', '#FAEDCD']
+            colors: ['#ff00cc', '#33ccff', '#ffcc00', '#00ff99']
         });
 
         if (Date.now() < end) {
@@ -201,7 +205,3 @@ window.addEventListener('resize', () => {
     setupCanvas();
     drawWheel();
 });
-
-// Init
-setupCanvas();
-drawWheel();
