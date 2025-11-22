@@ -29,10 +29,17 @@ let isSpinning = false;
 // Setup Canvas for HiDPI
 function setupCanvas() {
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
+    // We need to use the size defined in CSS or HTML attributes
+    // In HTML we set width="600" height="600"
+    // Let's force these values to ensure consistency
+    const logicalWidth = 600;
+    const logicalHeight = 600;
 
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    canvas.width = logicalWidth * dpr;
+    canvas.height = logicalHeight * dpr;
+
+    canvas.style.width = `${logicalWidth}px`;
+    canvas.style.height = `${logicalHeight}px`;
 
     ctx.scale(dpr, dpr);
 
@@ -45,11 +52,11 @@ function drawWheel() {
     const numSegments = PRIZES.length;
     const arcSize = (2 * Math.PI) / numSegments;
     // Use logical size for drawing calculations
-    const width = canvas.width / (window.devicePixelRatio || 1);
-    const height = canvas.height / (window.devicePixelRatio || 1);
+    const width = 600; // Fixed size
+    const height = 600; // Fixed size
     const centerX = width / 2;
     const centerY = height / 2;
-    const radius = width / 2 - 10;
+    const radius = width / 2 - 20; // Slightly smaller than half width
 
     ctx.clearRect(0, 0, width, height);
 
@@ -72,10 +79,11 @@ function drawWheel() {
         ctx.textAlign = "right";
         // White text for all segments for better contrast on neon colors
         ctx.fillStyle = "#fff";
-        ctx.font = "bold 24px 'Fredoka One'"; // Bigger, bolder font
+        ctx.font = "bold 32px 'Fredoka One'"; // Bigger font for bigger wheel
         ctx.shadowColor = "rgba(0,0,0,0.5)";
         ctx.shadowBlur = 4;
-        ctx.fillText(prize.label, radius - 30, 8);
+        // Adjust text position: radius - padding
+        ctx.fillText(prize.label, radius - 40, 10);
         ctx.restore();
     });
 }
