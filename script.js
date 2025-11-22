@@ -8,7 +8,6 @@ const modalMessage = document.getElementById('modalMessage');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
 // Configuration
-// Configuration
 const PRIZES = [
     { label: "Grille-pain", color: "#ff00cc", type: "win" }, // Neon Pink
     { label: "Perdu", color: "#33ccff", type: "loss" },      // Neon Blue
@@ -79,13 +78,14 @@ function drawWheel() {
         ctx.textAlign = "right";
         // White text for all segments for better contrast on neon colors
         ctx.fillStyle = "#fff";
-        ctx.font = "bold 32px 'Fredoka One'"; // Bigger font for bigger wheel
+        ctx.font = "bold 32px 'Fredoka One', sans-serif"; // Added fallback
         ctx.shadowColor = "rgba(0,0,0,0.5)";
         ctx.shadowBlur = 4;
         // Adjust text position: radius - padding
         ctx.fillText(prize.label, radius - 40, 10);
         ctx.restore();
     });
+    console.log("Wheel drawn!");
 }
 
 // Check Time
@@ -214,6 +214,6 @@ window.addEventListener('resize', () => {
     drawWheel();
 });
 
-// Init
-setupCanvas();
-drawWheel();
+// Init with robust loading
+window.addEventListener('load', () => {
+    console.log("Window loaded, initializing wheel...");
