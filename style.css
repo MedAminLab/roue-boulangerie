@@ -186,69 +186,69 @@ canvas {
 
 .status-panel {
     background: rgba(0, 0, 0, 0.5);
-    border: 2px solid var(--color-secondary);
-    padding: 0.8rem 2rem;
-    border-radius: 10px;
-    box-shadow: var(--shadow-neon-blue);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    visibility: visible;
+    transition: all 0.3s ease;
 }
 
-#statusMessage {
-    font-family: var(--font-heading);
-    font-size: 1.2rem;
-    color: #fff;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.modal.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
-/* Arcade Button */
-.arcade-button {
-    position: relative;
-    background: transparent;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    outline: none;
-    transition: transform 0.1s;
-}
-
-.arcade-button .btn-text {
-    display: block;
-    background: linear-gradient(to bottom, #ff33cc, #cc0099);
-    color: white;
-    font-family: var(--font-heading);
-    font-size: 2rem;
-    padding: 1rem 3rem;
-    border-radius: 50px;
-    border: 4px solid white;
-    position: relative;
-    z-index: 2;
-    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
-}
-
-.arcade-button .btn-shadow {
+.modal-overlay {
     position: absolute;
-    top: 10px;
+    top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: #66004d;
-    border-radius: 50px;
-    z-index: 1;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
 }
 
-.arcade-button:hover .btn-text {
-    background: linear-gradient(to bottom, #ff66d9, #e600ac);
-    box-shadow: 0 0 20px var(--color-primary);
+.arcade-modal {
+    background: linear-gradient(135deg, #2a0e3b, #1a0b2e);
+    border: 4px solid var(--color-accent);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 450px;
+    position: relative;
+    z-index: 101;
+    box-shadow: 0 0 50px rgba(255, 204, 0, 0.3);
+    transform: scale(1);
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
 }
 
-.arcade-button:active {
-    transform: translateY(6px);
+@keyframes popIn {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
-.arcade-button:active .btn-shadow {
-    top: 4px;
+.modal-header {
+    background: var(--color-accent);
+    padding: 1rem;
+    text-align: center;
 }
 
-.arcade-button:disabled {
-    filter: grayscale(1);
+.modal-header h2 {
+    font-family: var(--font-heading);
+    color: #1a0b2e;
+    font-size: 2rem;
+    margin: 0;
+}
+
+.modal-body {
  
