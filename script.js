@@ -1,14 +1,14 @@
 // ====================
-// CONFIGURATION
+// CONFIGURATION - DESIGN MODERNE COLORÉ
 // ====================
 const PRIZES = [
-    { label: "GAGNÉ !", color: "#00ff88", type: "win" },
-    { label: "PERDU", color: "#ff0066", type: "loss" },
-    { label: "GAGNÉ !", color: "#ffd700", type: "win" },
-    { label: "PERDU", color: "#ff0066", type: "loss" }
+    { label: "🎉 GAGNÉ !", color: "#FF1493", gradient: "linear-gradient(135deg, #FF1493, #FF6B9D)", type: "win" },     // Rose vif -> Rose clair
+    { label: "😢 PERDU", color: "#9D50BB", gradient: "linear-gradient(135deg, #9D50BB, #6E48AA)", type: "loss" },      // Violet
+    { label: "🎊 GAGNÉ !", color: "#00D9FF", gradient: "linear-gradient(135deg, #00D9FF, #7DEDFF)", type: "win" },     // Cyan -> Bleu clair
+    { label: "💔 PERDU", color: "#FFA500", gradient: "linear-gradient(135deg, #FFA500, #FFD700)", type: "loss" }       // Orange -> Or
 ];
 
-const WIN_PROBABILITY = 0.05; // 5% (10 sur 200)
+const WIN_PROBABILITY = 0.05;
 const START_HOUR = 7;
 const END_HOUR = 20;
 
@@ -31,7 +31,6 @@ let currentRotation = 0;
 // INITIALISATION CANVAS
 // ====================
 function initCanvas() {
-    // Taille fixe
     const size = 400;
     canvas.width = size;
     canvas.height = size;
@@ -43,7 +42,7 @@ function initCanvas() {
 }
 
 // ====================
-// DESSINER LA ROUE
+// DESSINER LA ROUE AVEC GRADIENTS
 // ====================
 function drawWheel() {
     const size = canvas.width;
@@ -52,41 +51,59 @@ function drawWheel() {
     const radius = size / 2 - 10;
     const anglePerSegment = (2 * Math.PI) / PRIZES.length;
 
-    // Fond
     ctx.clearRect(0, 0, size, size);
 
-    // Dessiner chaque segment
+    // Dessiner chaque segment avec gradient
     for (let i = 0; i < PRIZES.length; i++) {
         const startAngle = i * anglePerSegment;
+        const endAngle = startAngle + anglePerSegment;
         const prize = PRIZES[i];
+
+        // Créer gradient radial pour chaque segment
+        const gradient = ctx.createLinearGradient(
+            centerX, centerY,
+            centerX + Math.cos(startAngle + anglePerSegment / 2) * radius,
+            centerY + Math.sin(startAngle + anglePerSegment / 2) * radius
+        );
+
+        // Couleurs du gradient
+        if (prize.type === "win") {
+            gradient.addColorStop(0, prize.color);
+            gradient.addColorStop(1, i === 0 ? '#FF6B9D' : '#7DEDFF');
+        } else {
+            gradient.addColorStop(0, prize.color);
+            gradient.addColorStop(1, i === 1 ? '#6E48AA' : '#FFD700');
+        }
 
         // Segment
         ctx.beginPath();
-        ctx.fillStyle = prize.color;
+        ctx.fillStyle = gradient;
         ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, startAngle, startAngle + anglePerSegment);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
         ctx.closePath();
         ctx.fill();
 
-        // Bordure
+        // Bordure blanche épaisse
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.stroke();
 
-        // Texte
+        // Texte avec ombre portée
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(startAngle + anglePerSegment / 2);
         ctx.textAlign = 'center';
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 32px Fredoka One, Arial';
+        ctx.font = 'bold 28px Fredoka One, Arial';
         ctx.shadowColor = '#000';
-        ctx.shadowBlur = 5;
-        ctx.fillText(prize.label, radius * 0.7, 10);
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        ctx.fillText(prize.label, radius * 0.65, 10);
         ctx.restore();
     }
 
-    console.log('✅ Roue dessinée !');
+    console.log('✅ Roue dessinée avec gradients !');
 }
 
 // ====================
@@ -99,12 +116,36 @@ function isShopOpen() {
 }
 
 // ====================
+// PAILLETTES PENDANT LA ROTATION
+// ====================
+function launchSparkles() {
+    const colors = ['#FF1493', '#00D9FF', '#FFD700', '#9D50BB', '#FF6B9D', '#7DEDFF'];
+
+    for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+            confetti({
+                particleCount: 30,
+                angle: 90,
+                spread: 360,
+                origin: { x: 0.5, y: 0.5 },
+                colors: colors,
+                gravity: 0.5,
+                scalar: 1.2,
+                drift: 0,
+                ticks: 100,
+                shapes: ['circle', 'square'],
+                startVelocity: 20
+            });
+        }, i * 200);
+    }
+}
+
+// ====================
 // FAIRE TOURNER LA ROUE
 // ====================
 function spinWheel() {
     if (isSpinning) return;
 
-    // Vérifier horaires
     if (!isShopOpen()) {
         showModal("⏰ Fermé", "Le jeu est disponible de 7h à 20h uniquement !");
         return;
@@ -113,33 +154,35 @@ function spinWheel() {
     isSpinning = true;
     spinBtn.disabled = true;
     statusMessage.textContent = "🎰 EN COURS...";
+    statusMessage.style.animation = 'rainbow-text 2s linear infinite';
 
-    // Déterminer le résultat
+    // Paillettes pendant la rotation
+    launchSparkles();
+
     const isWin = Math.random() < WIN_PROBABILITY;
     let targetSegment = isWin
-        ? (Math.random() < 0.5 ? 0 : 2)  // Segment 0 ou 2 (GAGNÉ)
-        : (Math.random() < 0.5 ? 1 : 3); // Segment 1 ou 3 (PERDU)
+        ? (Math.random() < 0.5 ? 0 : 2)
+        : (Math.random() < 0.5 ? 1 : 3);
 
-    // Calcul rotation
     const segmentAngle = 360 / PRIZES.length;
     const spins = 8 + Math.floor(Math.random() * 4);
     const baseRotation = 360 * spins;
     const targetAngle = targetSegment * segmentAngle + segmentAngle / 2;
     const finalRotation = currentRotation + baseRotation + (360 - targetAngle) + 90;
 
-    // Animation
     animateRotation(currentRotation, finalRotation, 5000, () => {
         currentRotation = finalRotation % 360;
         isSpinning = false;
         spinBtn.disabled = false;
+        statusMessage.style.animation = '';
 
-        // Afficher résultat
         if (isWin) {
             statusMessage.textContent = "🎊 BRAVO !";
-            launchConfetti();
+            launchWinConfetti();
             showModal("🎉 FÉLICITATIONS !", "Vous avez gagné un GRILLE-PAIN ! Montrez cet écran au comptoir.");
         } else {
             statusMessage.textContent = "😢 Dommage...";
+            launchLossParticles();
             showModal("Pas cette fois !", "Réessayez votre chance ! Vous aurez peut-être plus de succès.");
         }
     });
@@ -154,8 +197,6 @@ function animateRotation(start, end, duration, callback) {
     function animate() {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
-
-        // Easing: ralentissement progressif
         const easeOut = 1 - Math.pow(1 - progress, 4);
         const rotation = start + (end - start) * easeOut;
 
@@ -172,26 +213,46 @@ function animateRotation(start, end, duration, callback) {
 }
 
 // ====================
-// CONFETTI
+// CONFETTI GAGNANT - SPECTACULAIRE !
 // ====================
-function launchConfetti() {
-    const duration = 3000;
+function launchWinConfetti() {
+    const duration = 5000;
     const end = Date.now() + duration;
+    const colors = ['#FF1493', '#00D9FF', '#FFD700', '#FF6B9D', '#7DEDFF', '#FFA500'];
 
     (function frame() {
+        // Explosion centrale
         confetti({
-            particleCount: 10,
+            particleCount: 15,
             angle: 60,
-            spread: 100,
-            origin: { x: 0 },
-            colors: ['#ffd700', '#00ff88', '#ffff00']
+            spread: 120,
+            origin: { x: 0, y: 0.6 },
+            colors: colors,
+            scalar: 1.5,
+            gravity: 1.2,
+            shapes: ['star', 'circle']
         });
         confetti({
-            particleCount: 10,
+            particleCount: 15,
             angle: 120,
-            spread: 100,
-            origin: { x: 1 },
-            colors: ['#ffd700', '#00ff88', '#ffff00']
+            spread: 120,
+            origin: { x: 1, y: 0.6 },
+            colors: colors,
+            scalar: 1.5,
+            gravity: 1.2,
+            shapes: ['star', 'circle']
+        });
+
+        // Pluie d'étoiles du haut
+        confetti({
+            particleCount: 10,
+            angle: 90,
+            spread: 60,
+            origin: { x: 0.5, y: 0 },
+            colors: colors,
+            gravity: 0.8,
+            shapes: ['star'],
+            scalar: 1.2
         });
 
         if (Date.now() < end) {
@@ -201,12 +262,32 @@ function launchConfetti() {
 }
 
 // ====================
+// PARTICULES PERTE
+// ====================
+function launchLossParticles() {
+    confetti({
+        particleCount: 50,
+        angle: 90,
+        spread: 70,
+        origin: { y: 0.4 },
+        colors: ['#6E48AA', '#4A4A4A', '#8B8B8B'],
+        gravity: 1.5,
+        scalar: 0.8,
+        drift: 0.2
+    });
+}
+
+// ====================
 // MODAL
 // ====================
 function showModal(title, message) {
     modalTitle.textContent = title;
     modalMessage.textContent = message;
     resultModal.classList.remove('hidden');
+
+    // Animation d'entrée du modal
+    const modal = document.querySelector('.arcade-modal');
+    modal.style.animation = 'pop-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
 }
 
 closeModalBtn.addEventListener('click', () => {
