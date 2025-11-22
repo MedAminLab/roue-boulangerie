@@ -4,49 +4,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Roue Gourmande - Boulangerie Délices</title>
+    <title>La Roue Gourmande</title>
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Playfair+Display:wght@700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;600;800&display=swap"
         rel="stylesheet">
+
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="app-container">
-        <header>
+
+    <main class="game-container">
+        <header class="game-header">
             <h1>La Roue Gourmande</h1>
-            <p>Tentez de gagner un grille-pain !</p>
+            <p class="subtitle">Tentez votre chance chaque jour !</p>
         </header>
 
-        <main>
-            <div class="wheel-container">
+        <div class="wheel-section">
+            <div class="wheel-wrapper">
                 <div class="pointer"></div>
                 <canvas id="wheelCanvas" width="500" height="500"></canvas>
             </div>
+        </div>
 
-            <div class="controls">
-                <button id="spinBtn" class="btn-primary">Lancer la Roue</button>
-                <p id="statusMessage" class="status-message"></p>
+        <div class="controls-section">
+            <div class="status-card">
+                <p id="statusMessage">La boulangerie est ouverte !</p>
             </div>
-        </main>
-
-        <footer>
-            <p>Ouvert de 7h à 20h</p>
-        </footer>
-    </div>
+            <button id="spinBtn" class="cta-button">Lancer la Roue</button>
+            <p class="disclaimer">Un seul essai par jour • 7h - 20h</p>
+        </div>
+    </main>
 
     <!-- Modal Résultat -->
     <div id="resultModal" class="modal hidden">
+        <div class="modal-overlay"></div>
         <div class="modal-content">
             <h2 id="modalTitle">Résultat</h2>
-            <p id="modalMessage">Message</p>
-            <button id="closeModalBtn" class="btn-secondary">Fermer</button>
+            <p id="modalMessage">Message...</p>
+            <button id="closeModalBtn" class="secondary-button">Fermer</button>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="script.js"></script>
 </body>
 
